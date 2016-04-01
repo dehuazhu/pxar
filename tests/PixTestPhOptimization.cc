@@ -279,7 +279,7 @@ void PixTestPhOptimization::GetMaxPhPixel(map<int, pxar::pixel > &maxpixels,   s
   fApi->_dut->maskAllPixels(false);
   maskPixels();
   vector<uint8_t> rocIds = fApi->_dut->getEnabledRocIDs(); 
-  bool isPixGood=true;
+  //bool isPixGood=true;
   int maxph = 255;
   fApi->setDAC("phoffset", 200);
   int init_phScale =200;
@@ -305,17 +305,27 @@ void PixTestPhOptimization::GetMaxPhPixel(map<int, pxar::pixel > &maxpixels,   s
     maxph=0;
     //check that the pixel showing highest PH on the module is not reaching 255
     for( unsigned int ith2 = 0; ith2 < maxphmap.size(); ith2++) {
-      isPixGood=true;
+      //isPixGood=true;
+
+      // ignore blacklisted pixels for maximum calculation
+      for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
+        maxphmap[ith2]->SetBinContent(1 + bad_it->second.first, 1 + bad_it->second.second, -1);
+      }
+
       maxphmap[ith2]->GetBinXYZ(maxphmap[ith2]->GetMaximumBin(), xbinmax, ybinmax, zbinmax);
       colmax = maxphmap[ith2]->GetXaxis()->GetBinCenter(xbinmax);
       rowmax = maxphmap[ith2]->GetYaxis()->GetBinCenter(ybinmax);
+      
+      /*
       for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
 	if(bad_it->second.first == colmax && bad_it->second.second == rowmax && bad_it->first == getIdFromIdx(ith2)){
 	  isPixGood=false;
 	}
-      }
-      if(isPixGood && maxphmap[ith2]->GetBinContent(xbinmax, ybinmax) > maxph){
+      }*/
+
+      if(maxphmap[ith2]->GetBinContent(xbinmax, ybinmax) > maxph){
 	maxph = maxphmap[ith2]->GetBinContent(xbinmax, ybinmax);
+  LOG(logDEBUG) << "maxph = "<< maxph << " for " << colmax << "/" << rowmax;
 	}
     }
     //should have flag for v2 or v2.1
@@ -361,7 +371,7 @@ void PixTestPhOptimization::GetMaxPhPixel(map<int, pxar::pixel > &maxpixels,   s
 	  temp_pix.setRow( ibiny - 1 );
 	  temp_pix.setColumn( ibinx - 1 );
 	  for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
-	    if(bad_it->second.first == ibinx && bad_it->second.second == ibiny && bad_it->first == getIdFromIdx(ith2)){
+	    if(bad_it->second.first == (ibinx-1) && bad_it->second.second == (ibiny-1) && bad_it->first == getIdFromIdx(ith2)){
 	      badpix=true;
 	      break;
 	    }
@@ -390,14 +400,14 @@ void PixTestPhOptimization::GetMaxPhPixel(map<int, pxar::pixel > &maxpixels,   s
 	    temp_pix.setRow( ibiny - 1 );
 	    temp_pix.setColumn( ibinx - 1 );
 	    for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
-	      if(bad_it->second.first == ibinx && bad_it->second.second == ibiny && bad_it->first == getIdFromIdx(ith2)){
+	      if(bad_it->second.first == (ibinx-1) && bad_it->second.second == (ibiny-1) && bad_it->first == getIdFromIdx(ith2)){
 		badpix=true;
 		break;
 	      }
 	    }
 	    if(badpix) continue;
 	    temp_pix.setValue( maxphmap[ith2]->GetBinContent(ibinx,ibiny) );
-	    LOG(logDEBUG)<<"Max pixel is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<maxphmap[ith2]->GetBinContent(ibinx, ibiny);
+      LOG(logINFO)<<"Max pixel of ROC "<< getIdFromIdx(ith2)<<" is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<maxphmap[ith2]->GetBinContent(ibinx, ibiny);
 	    maxpixels.insert(make_pair(getIdFromIdx(ith2), temp_pix));
 	    pix_found=true;
 	    break;
@@ -406,7 +416,7 @@ void PixTestPhOptimization::GetMaxPhPixel(map<int, pxar::pixel > &maxpixels,   s
       }
     }
     if(!pix_found){
-      LOG(logDEBUG)<<"max ph pixel determination failed on roc "<<getIdFromIdx(ith2)<<", setting pixel 0,0";
+      LOG(logINFO)<<"max ph pixel determination failed on roc "<<getIdFromIdx(ith2)<<", setting pixel 0,0";
       temp_pix.setRoc( getIdFromIdx(ith2) ); 
       temp_pix.setRow( 0 );
       temp_pix.setColumn( 0 );
@@ -430,7 +440,7 @@ void PixTestPhOptimization::GetMinPhPixel(map<int, pxar::pixel > &minpixels, map
   fApi->_dut->maskAllPixels(false);
   maskPixels();
   vector<uint8_t> rocIds = fApi->_dut->getEnabledRocIDs(); 
-  bool isPixGood=true;
+  //bool isPixGood=true;
   int minph = 0;
   int init_phScale = 150;
   int init_phOffset = 175;
@@ -457,16 +467,25 @@ void PixTestPhOptimization::GetMinPhPixel(map<int, pxar::pixel > &minpixels, map
     LOG(logDEBUG) << "result size "<<result.size()<<endl;
     //check that the pixel showing lowest PH above 0 on the module
     for(unsigned int ith2 = 0; ith2 < minphmap.size(); ith2++) {
-      isPixGood=true;
+      //isPixGood=true;
+
+      // ignore blacklisted pixels for minimum calculation
+      for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
+        minphmap[ith2]->SetBinContent(1 + bad_it->second.first, 1 + bad_it->second.second, 300);
+      }
+
       minphmap[ith2]->GetBinXYZ(minphmap[ith2]->GetMinimumBin(), xbinmin, ybinmin, zbinmin);
       colmin = minphmap[ith2]->GetXaxis()->GetBinCenter(xbinmin);
       rowmin = minphmap[ith2]->GetYaxis()->GetBinCenter(ybinmin);
+      
+      /*
       for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
 	if(bad_it->second.first == colmin && bad_it->second.second == rowmin && bad_it->first == getIdFromIdx(ith2)){
 	  isPixGood=false;
 	}
-      }
-      if(isPixGood && minphmap[ith2]->GetBinContent(xbinmin, ybinmin) < minph){
+      }*/
+
+      if(minphmap[ith2]->GetBinContent(xbinmin, ybinmin) < minph){
 	minph = minphmap[ith2]->GetBinContent(xbinmin, ybinmin);
 	minph_roc = ith2;
       }
@@ -516,7 +535,7 @@ void PixTestPhOptimization::GetMinPhPixel(map<int, pxar::pixel > &minpixels, map
 	  temp_pix.setRow( ibiny - 1 );
 	  temp_pix.setColumn( ibinx - 1 );
 	  for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
-	    if(bad_it->second.first == ibinx && bad_it->second.second == ibiny && bad_it->first == getIdFromIdx(ith2)){
+	    if(bad_it->second.first == (ibinx-1) && bad_it->second.second == (ibiny-1) && bad_it->first == getIdFromIdx(ith2)){
 	      badpix=true;
 	      break;
 	    }
@@ -546,13 +565,13 @@ void PixTestPhOptimization::GetMinPhPixel(map<int, pxar::pixel > &minpixels, map
 	    temp_pix.setRow( ibiny - 1 );
 	    temp_pix.setColumn( ibinx - 1 );
 	    for(std::vector<std::pair<uint8_t, pair<int, int> > >::iterator bad_it = badPixels.begin(); bad_it != badPixels.end(); bad_it++){
-	      if(bad_it->second.first == ibinx && bad_it->second.second == ibiny && bad_it->first == getIdFromIdx(ith2)){
+	      if(bad_it->second.first == (ibinx-1) && bad_it->second.second == (ibiny-1) && bad_it->first == getIdFromIdx(ith2)){
 		badpix=true;
 		break;
 	      }
 	    }
 	    if(badpix) continue;
-	    LOG(logDEBUG)<<"Min pixel is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<minphmap[ith2]->GetBinContent(ibinx, ibiny);
+	    LOG(logINFO)<<"Min pixel of ROC " << getIdFromIdx(ith2)<< "is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<minphmap[ith2]->GetBinContent(ibinx, ibiny);
 	    temp_pix.setValue( minphmap[ith2]->GetBinContent(ibinx,ibiny) );
 	    minpixels.insert(make_pair(getIdFromIdx(ith2), temp_pix));
 	    pix_found = true;
@@ -562,7 +581,7 @@ void PixTestPhOptimization::GetMinPhPixel(map<int, pxar::pixel > &minpixels, map
       }
     }
     if(!pix_found){
-      LOG(logDEBUG)<<"min ph pixel determination failed on roc "<<getIdFromIdx(ith2)<<", setting pixel 0,0";
+      LOG(logINFO)<<"min ph pixel determination failed on roc "<<getIdFromIdx(ith2)<<", setting pixel 0,0";
       temp_pix.setRoc( getIdFromIdx(ith2) ); 
       temp_pix.setRow( 0 );
       temp_pix.setColumn( 0 );
