@@ -236,7 +236,7 @@ void PixTestPhOptimization::BlacklistPixels(std::vector<std::pair<uint8_t, pair<
   }
   setDacs("vcal", vVcal); 
   setDacs("ctrlreg", vCreg); 
-  LOG(logDEBUG)<<"Number of bad pixels found: "<<badPixels.size();
+  LOG(logINFO)<<"Number of bad pixels found: "<<badPixels.size();
 }
 
 
@@ -378,7 +378,7 @@ void PixTestPhOptimization::GetMaxPhPixel(map<int, pxar::pixel > &maxpixels,   s
 	  }
 	  if(badpix) continue;
 	  temp_pix.setValue( maxphmap[ith2]->GetBinContent(ibinx,ibiny) );
-	  LOG(logDEBUG)<<"Max pixel is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<maxphmap[ith2]->GetBinContent(ibinx, ibiny);
+	  LOG(logINFO)<<"Max pixel of ROC "<< getIdFromIdx(ith2)<<" is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<maxphmap[ith2]->GetBinContent(ibinx, ibiny);
 	  maxpixels.insert(make_pair(getIdFromIdx(ith2), temp_pix));
 	  pix_found=true;
 	  break;
@@ -387,7 +387,7 @@ void PixTestPhOptimization::GetMaxPhPixel(map<int, pxar::pixel > &maxpixels,   s
     }
     //if not found, look outside fiducial region
     if(!pix_found){
-      LOG(logDEBUG)<<"Search for maxph pixel failed in the fiducial region on chip "<< (int)getIdFromIdx(ith2)<<", looking at the edges";
+      LOG(logINFO)<<"Search for maxph pixel failed in the fiducial region on chip "<< (int)getIdFromIdx(ith2)<<", looking at the edges";
       for(int ibinx_ex = maxphmap[ith2]->GetNbinsX()+1-colMargin; ibinx_ex < maxphmap[ith2]->GetNbinsX()+1+colMargin; ibinx_ex++){
 	if(pix_found) break;
 	for(int ibiny_ex = maxphmap[ith2]->GetNbinsY()+1 - rowMargin; ibiny_ex < maxphmap[ith2]->GetNbinsY()+1 + rowMargin; ibiny_ex++){
@@ -541,7 +541,7 @@ void PixTestPhOptimization::GetMinPhPixel(map<int, pxar::pixel > &minpixels, map
 	    }
 	  }
 	  if(badpix) continue;
-	  LOG(logDEBUG)<<"Min pixel is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<minphmap[ith2]->GetBinContent(ibinx, ibiny);
+	  LOG(logINFO)<<"Min pixel of ROC " << getIdFromIdx(ith2)<< "is ["<<(int)temp_pix.column()<<" ,"<<(int)temp_pix.row()<<"]"<<" phvalue "<<minphmap[ith2]->GetBinContent(ibinx, ibiny);
 	  temp_pix.setValue( minphmap[ith2]->GetBinContent(ibinx,ibiny) );
 	  minpixels.insert(make_pair(getIdFromIdx(ith2), temp_pix));
 	  pix_found = true;
@@ -552,7 +552,7 @@ void PixTestPhOptimization::GetMinPhPixel(map<int, pxar::pixel > &minpixels, map
     
     //if not found, look outside fiducial region
     if(!pix_found){
-      LOG(logDEBUG)<<"Search for minph pixel failed in the fiducial region for chip "<< (int)getIdFromIdx(ith2)<<", looking at the edges";
+      LOG(logINFO)<<"Search for minph pixel failed in the fiducial region for chip "<< (int)getIdFromIdx(ith2)<<", looking at the edges";
       for(int ibinx_ex = minphmap[ith2]->GetNbinsX()+1-colMargin; ibinx_ex < minphmap[ith2]->GetNbinsX()+1+colMargin; ibinx_ex++){
 	if(pix_found) break;
 	for(int ibiny_ex = minphmap[ith2]->GetNbinsY()+1 - rowMargin; ibiny_ex < minphmap[ith2]->GetNbinsY()+1 + rowMargin; ibiny_ex++){
