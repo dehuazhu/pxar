@@ -294,6 +294,8 @@ void PixTestReadback::FinalCleaning() {
 
 // ----------------------------------------------------------------------
 void PixTestReadback::doTest() {
+  
+  TStopwatch t;
   bigBanner(Form("PixTestReadback::doTest()"));
   
   CalibrateVd();
@@ -305,8 +307,17 @@ void PixTestReadback::doTest() {
     (*il)->Draw((getHistOption(*il)).c_str()); 
   }
   
- LOG(logINFO) << "PixTestReadback::doTest() done";
+ int seconds = t.RealTime(); 
+ LOG(logINFO) << "PixTestReadback::doTest() done, duration: "<<seconds<<"seconds";
  dutCalibrateOff();
+
+ //This resets the DTB 
+ fApi->Poff();
+ TStopwatch sw;
+ do{
+ } while (sw.RealTime()<0.5);
+ fApi->Pon();
+
 }
 
 
