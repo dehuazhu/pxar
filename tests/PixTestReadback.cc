@@ -9,6 +9,13 @@
 #include "timer.h"
 #include <fstream>
 #include "PixUtil.hh"
+#include <TColor.h>
+#include <TStyle.h>
+#include <TMarker.h>
+#include <bitset>
+#include "PixTestFactory.hh"
+
+
 
 using namespace std;
 using namespace pxar;
@@ -295,6 +302,10 @@ void PixTestReadback::FinalCleaning() {
 // ----------------------------------------------------------------------
 void PixTestReadback::doTest() {
   
+LOG(logINFO) <<"Resetting the DTB...";
+
+  
+
   TStopwatch t;
   bigBanner(Form("PixTestReadback::doTest()"));
   
@@ -311,12 +322,18 @@ void PixTestReadback::doTest() {
  LOG(logINFO) << "PixTestReadback::doTest() done, duration: "<<seconds<<"seconds";
  dutCalibrateOff();
 
- //This resets the DTB 
- fApi->Poff();
- TStopwatch sw;
- do{
- } while (sw.RealTime()<0.5);
- fApi->Pon();
+//This resets the DTB after the findtiming test.
+  fApi->Poff();
+  TStopwatch sw;
+  sw.Start(kTRUE); // reset
+  do {
+    sw.Start(kFALSE); // continue
+  } while (sw.RealTime() < 0.5);
+  fApi->Pon();
+  LOG(logINFO)<<"Resetted DTB.";
+
+
+ 
 
 }
 
