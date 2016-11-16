@@ -520,15 +520,6 @@ void PixTestPretest::findTiming() {
 
   if (success < 0) fProblem = true;
 
-  //This resets the DTB after the findtiming test.
-  fApi->Poff();
-  TStopwatch sw;
-  sw.Start(kTRUE); // reset
-  do {
-    sw.Start(kFALSE); // continue
-  } while (sw.RealTime() < 0.5);
-  fApi->Pon();
-
 }
 
 
